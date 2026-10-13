@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>cannot-be-seen — capture test</title>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff; --ok:#3fb950; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 "Segoe UI",system-ui,sans-serif; }
+  main { max-width: 1000px; margin: 0 auto; padding: 28px 22px 60px; }
+  h1 { font-size: 19px; margin: 0 0 4px; }
+  p.lede { color: var(--muted); margin: 0 0 22px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .col h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 0 0 8px; }
+  .frame {
+    background:#000; border:1px solid var(--line); border-radius:8px; aspect-ratio:16/10;
+    display:flex; align-items:center; justify-content:center; color:#555; overflow:hidden;
+  }
+  video, canvas.shot { width:100%; height:100%; object-fit:contain; }
+  button {
+    font:inherit; font-size:13px; padding:8px 16px; border-radius:8px; cursor:pointer;
+    background:#1f6feb; color:#fff; border:1px solid #1f6feb; margin-right:8px;
+  }
+  button.ghost { background:transparent; color:var(--text); border-color:var(--line); }
+  button:disabled { opacity:.4; cursor:not-allowed; }
+  ol { padding-left: 20px; }
+  li { margin-bottom: 6px; }
+  code { background:#0b0f14; padding:1px 6px; border-radius:4px; font-size:12.5px; }
+  .ok { color: var(--ok); font-weight:600; }
+  .note { background:#12181f; border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:6px; padding:12px 15px; margin-top:22px; color:#c9d1d9; font-size:13px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Does capture exclusion actually work?</h1>
+  <p class="lede">This page captures your screen using the exact same browser API that Google Meet and
+  Teams-on-web use, so what you see here is what your meeting participants would see.</p>
+
+  <div>
+    <button id="start">Start screen capture</button>
+    <button id="shot" class="ghost" disabled>Freeze a frame</button>
+    <button id="stop" class="ghost" disabled>Stop</button>
+  </div>
+
+  <div class="grid" style="margin-top:18px">
+    <div class="col">
+      <h2>Live capture (what others see)</h2>
+      <div class="frame"><video id="video" autoplay muted playsinline></video></div>
+    </div>
+    <div class="col">
+      <h2>Frozen snapshot</h2>
+      <div class="frame"><canvas id="canvas" class="shot"></canvas></div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>How to read this.</strong> Pick <em>Entire Screen</em> in the picker, then move a
+    protected window over this page. In the live capture it should be
+    <span class="ok">completely absent</span> — you'll see whatever is behind it — while remaining
+    fully visible on your real screen. Press <code>Win+Shift+S</code> and it will be missing from the
+    snip too.
+    <ol>
+      <li>Open a protected window from the dashboard and put it over this page.</li>
+      <li>Click <em>Start screen capture</em> and choose your whole screen.</li>
+      <li>The protected window is visible to you, but not in the left-hand preview.</li>
+    </ol>
+    If it <em>does</em> show up in the preview, capture exclusion is not being honoured and the tool
+    will not hide it from a real meeting either.
+  </div>
+
+  <div class="note" style="border-left-color:#d29922">
+    Note: sharing a <em>single window</em> instead of the whole screen works differently — pickers let
+    you share the protected window directly, and anything you deliberately share is captured normally.
+    Full-screen sharing is the case this protects against.
+  </div>
+</main>
+
+<script>
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const startBtn = document.getElementById('start');
+const shotBtn = document.getElementById('shot');
+const stopBtn = document.getElementById('stop');
+let stream = null;
+
+startBtn.addEventListener('click', async () => {
+  try {
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video: { frameRate: 10 },
+      audio: false,
+    });
+    video.srcObject = stream;
+    startBtn.disabled = true;
+    shotBtn.disabled = false;
+    stopBtn.disabled = false;
+    stream.getVideoTracks()[0].addEventListener('ended', reset);
+  } catch (err) {
+    alert('Capture was not started: ' + err.message);
+  }
+});
+
+shotBtn.addEventListener('click', () => {
+  if (!stream) return;
+  canvas.width = video.videoWidth || 1280;
+  canvas.height = video.videoHeight || 720;
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+});
+
+stopBtn.addEventListener('click', () => stream && stream.getTracks().forEach(t => t.stop()));
+
+function reset() {
+  stream = null;
+  video.srcObject = null;
+  startBtn.disabled = false;
+  shotBtn.disabled = true;
+  stopBtn.disabled = true;
+}
+</script>
+</body>
+</html>

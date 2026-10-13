@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="cannot-be-seen">
+  <title>cannot-be-seen</title>
+  <desc>An eye struck through: visible to you, absent from the capture.</desc>
+  <defs>
+    <linearGradient id="badge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#58a6ff"/>
+      <stop offset="1" stop-color="#1f6feb"/>
+    </linearGradient>
+    <!-- The slash is punched out of the eye rather than drawn over it, so the
+         badge shows through and the mark still reads at tray-icon size. -->
+    <mask id="slashCut">
+      <rect width="512" height="512" fill="#fff"/>
+      <line x1="150" y1="368" x2="362" y2="144" stroke="#000" stroke-width="26" stroke-linecap="round"/>
+    </mask>
+  </defs>
+
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#badge)"/>
+
+  <g mask="url(#slashCut)">
+    <path d="M112 256 Q256 112 400 256 Q256 400 112 256 Z"
+          fill="none" stroke="#ffffff" stroke-width="44" stroke-linejoin="round"/>
+    <circle cx="256" cy="256" r="44" fill="#ffffff"/>
+  </g>
+</svg>

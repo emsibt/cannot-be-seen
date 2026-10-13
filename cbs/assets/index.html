@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>cannot-be-seen</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --panel2: #1c2230; --line: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --ok: #3fb950; --warn: #d29922; --bad: #f85149; --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 13px/1.5 "Segoe UI", system-ui, sans-serif;
+  }
+  header {
+    padding: 16px 22px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0; background: var(--bg); z-index: 5;
+  }
+  header h1 { font-size: 15px; margin: 0; font-weight: 600; letter-spacing: .2px; }
+  header .sub { color: var(--muted); font-size: 12px; }
+  main { padding: 18px 22px 40px; max-width: 1180px; }
+  section { margin-bottom: 26px; }
+  h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .8px;
+    color: var(--muted); margin: 0 0 10px; font-weight: 600;
+  }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+    color: var(--muted); font-weight: 600; padding: 9px 12px; border-bottom: 1px solid var(--line);
+  }
+  td { padding: 8px 12px; border-bottom: 1px solid #21262d; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1b212b; }
+  .app { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .title { max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .empty { padding: 18px 12px; color: var(--muted); font-size: 12px; }
+  button {
+    font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 6px; cursor: pointer;
+    background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  button:hover { border-color: #4b5563; background: #232b39; }
+  button.primary { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+  button.primary:hover { background: #2b7fff; }
+  button.danger:hover { border-color: var(--bad); color: var(--bad); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .row.nowrap { flex-wrap: nowrap; }
+  input[type=text], select {
+    font: inherit; font-size: 12px; padding: 5px 9px; border-radius: 6px;
+    background: #0b0f14; color: var(--text); border: 1px solid var(--line);
+  }
+  input[type=text] { min-width: 220px; }
+  input[type=range] { width: 240px; accent-color: var(--accent); cursor: pointer; }
+  .slider-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 12px;
+  }
+  .slider-row .label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .slider-row .value { font-size: 12px; color: var(--text); min-width: 42px; font-variant-numeric: tabular-nums; }
+  .check {
+    display: flex; align-items: center; gap: 6px; font-size: 12px;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+  }
+  .badge {
+    display: inline-block; font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
+    border: 1px solid transparent; white-space: nowrap; font-weight: 600;
+  }
+  .b-excluded { color: #0d1117; background: var(--ok); }
+  .b-dim { color: #0d1117; background: var(--warn); }
+  .b-hidden { color: #0d1117; background: var(--purple); }
+  .b-pin { color: #fff; background: #1f6feb; }
+  .b-ours { color: var(--accent); border-color: var(--accent); }
+  .b-plain { color: var(--muted); border-color: var(--line); }
+  .note {
+    background: #12181f; border: 1px solid var(--line); border-left: 3px solid var(--warn);
+    border-radius: 6px; padding: 11px 14px; color: #c9d1d9; font-size: 12px; margin-bottom: 14px;
+  }
+  .note strong { color: var(--warn); }
+  .note.info { border-left-color: var(--accent); }
+  .note.info strong { color: var(--accent); }
+  .card-list { display: flex; flex-direction: column; }
+  .card {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border-bottom: 1px solid #21262d;
+  }
+  .card:last-child { border-bottom: none; }
+  .card .meta { flex: 1; min-width: 0; }
+  .card .label { font-weight: 600; }
+  .card .url { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .statusline { font-size: 11.5px; color: var(--muted); }
+  code { background: #0b0f14; padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+  #toast {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    background: #1f6feb; color: #fff; padding: 8px 16px; border-radius: 8px;
+    font-size: 12px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 50;
+  }
+  #toast.show { opacity: 1; }
+  #toast.err { background: var(--bad); }
+</style>
+</head>
+<body>
+<header>
+  <h1>cannot-be-seen</h1>
+  <span class="sub" id="headline">loading…</span>
+  <span style="flex:1"></span>
+  <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer">
+    <input type="checkbox" id="chk-dashboard"> hide this dashboard from capture
+  </label>
+  <button id="btn-verify">Test in browser</button>
+  <button id="btn-showall">Show all hidden</button>
+</header>
+
+<main>
+  <div class="note info" id="monitor-note" style="display:none"></div>
+
+  <section>
+    <h2>Protected windows <span style="text-transform:none;letter-spacing:0;font-weight:400">— real capture exclusion</span></h2>
+    <div class="note info">
+      These are Chromium windows this app creates and owns, so Windows lets us exclude them from
+      screen capture. They stay <strong>fully visible to you</strong> and are
+      <strong>absent from Teams, Meet, or any other capture</strong> — including screenshots taken
+      with Win+Shift+S.<br>
+      <strong>Logins persist.</strong> The browser profile is kept between launches, so you sign in
+      to a site once and stay signed in — tick the site's own "remember me" and it survives restarts.
+    </div>
+    <div class="panel">
+      <div class="card-list" id="protected-list"></div>
+      <div class="card" style="background:#12181f">
+        <input type="text" id="new-label" placeholder="Label (e.g. Gmail)" style="min-width:180px">
+        <input type="text" id="new-url" placeholder="https://mail.google.com" style="flex:1">
+        <button class="primary" id="btn-new">Open protected window</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>All open windows</h2>
+    <div class="note">
+      <strong>Dim</strong> makes a window translucent <em>and</em> lets the mouse fall straight through
+      it, so it stops stealing your clicks while you work on the shared screen underneath. Hold
+      <strong>Ctrl</strong> to interact with a dimmed window again. Dim is still captured — it is not
+      privacy; use a protected window for that. <strong>Pin</strong> on any row raises that one
+      window above everything else, and is independent of dimming.
+    </div>
+    <div class="slider-row">
+      <span class="label">Dim transparency</span>
+      <input type="range" id="dim-slider" min="0" max="90" step="1"
+             title="How see-through a dimmed window is">
+      <span class="value" id="dim-value">45%</span>
+      <span class="statusline">0% is nearly solid, 90% is barely there. Applies to every dimmed window straight away.</span>
+    </div>
+    <div class="panel">
+      <table>
+        <thead>
+          <tr><th style="width:110px">App</th><th>Window</th><th style="width:200px">State</th><th style="width:450px">Actions</th></tr>
+        </thead>
+        <tbody id="window-rows"></tbody>
+      </table>
+      <div class="empty" id="window-empty" style="display:none">No windows found.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Rules <span style="text-transform:none;letter-spacing:0;font-weight:400">— re-applied automatically</span></h2>
+    <div class="note">
+      <strong>Nothing in this section hides a window from a share.</strong>
+      Windows does not allow one process to exclude another app's window from capture — the API
+      returns <code>ERROR_ACCESS_DENIED</code> for any window you don't own — which is why this app
+      creates its own windows. So rules for other apps can only <em>dim</em> a window (translucent
+      and click-through, but still captured) or <em>hide</em> it (gone from the screen, so also gone
+      from the share, but you can't read it either). For anything you need to read privately while
+      sharing, use a protected window above.
+    </div>
+    <div class="panel">
+      <table>
+        <thead>
+          <tr><th style="width:60px">On</th><th style="width:150px">App</th><th>Window title contains</th><th style="width:150px">Mode</th><th style="width:95px"></th></tr>
+        </thead>
+        <tbody id="rule-rows"></tbody>
+      </table>
+      <div class="empty" id="rule-empty" style="display:none">No rules yet — add one from the window list.</div>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let state = { windows: [], protected: [], rules: [], hidden: [], dashboard_protected: false };
+
+function toast(msg, isErr) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.className = ''; }, 3200);
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function badge(cls, text) { return `<span class="badge ${cls}">${esc(text)}</span>`; }
+
+function stateBadges(w, st) {
+  const out = [];
+  if (st.capture_excluded) out.push(badge('b-excluded', 'excluded from capture'));
+  if (st.dimmed) out.push(badge('b-dim', 'dimmed · Ctrl to use'));
+  if (st.pinned) out.push(badge('b-pin', 'pinned'));
+  if (st.hidden) out.push(badge('b-hidden', 'hidden'));
+  if (state.monitors.length > 1 && w.monitor) out.push(badge('b-plain', w.monitor));
+  if (!out.length) out.push(badge('b-plain', 'normal'));
+  return out.join(' ');
+}
+
+function renderMonitorNote() {
+  const note = $('monitor-note');
+  const count = state.monitors.length;
+  if (count < 2) { note.style.display = 'none'; return; }
+  note.style.display = 'block';
+  note.innerHTML = `<strong>${count} monitors detected.</strong> In Teams and Meet, share only
+    <em>one</em> screen and keep private windows on the other — nothing on an unshared display is ever
+    captured, and you can still read and type in it normally. Use <strong>Other screen</strong> on any
+    window to move it across. Detected: ${state.monitors.map(esc).join(', ')}.`;
+}
+
+function renderProtected() {
+  const host = $('protected-list');
+  if (!state.protected.length) {
+    host.innerHTML = '<div class="empty">No protected windows open.</div>';
+    return;
+  }
+  host.innerHTML = state.protected.map(p => `
+    <div class="card">
+      <div class="meta">
+        <div class="label">${esc(p.label)}</div>
+        <div class="url">${esc(p.url)}</div>
+        <div class="statusline">${esc(p.status)}</div>
+      </div>
+      ${badge('b-ours', p.hwnd ? 'hwnd 0x' + p.hwnd.toString(16) : 'no handle')}
+      <button data-act="focus" data-id="${esc(p.id)}">Focus</button>
+      <button class="danger" data-act="close" data-id="${esc(p.id)}">Close</button>
+    </div>`).join('');
+}
+
+function renderWindows() {
+  const rows = $('window-rows');
+  const list = state.windows;
+  $('window-empty').style.display = list.length ? 'none' : 'block';
+  rows.innerHTML = list.map(w => {
+    const st = w.state;
+    return `<tr>
+      <td class="app">${esc(w.exe || 'unknown')}</td>
+      <td class="title" title="${esc(w.title)}">${esc(w.title)}</td>
+      <td>${stateBadges(w, st)}</td>
+      <td>
+        <div class="row nowrap">
+          <button data-act="pin" data-hwnd="${w.hwnd}"
+                  title="Keep this window above everything else">${st.pinned ? 'Unpin' : 'Pin'}</button>
+          ${w.ours
+            ? `<button data-act="exclude" data-hwnd="${w.hwnd}">Exclude from capture</button>`
+            : `<button data-act="dim" data-hwnd="${w.hwnd}">${st.dimmed ? 'Un-dim' : 'Dim'}</button>
+               <button data-act="hide" data-hwnd="${w.hwnd}">Hide</button>
+               ${state.monitors.length > 1 ? `<button data-act="move" data-hwnd="${w.hwnd}" title="Move this window to another monitor">Other screen</button>` : ''}
+               <select data-act="always" data-hwnd="${w.hwnd}" title="Re-apply this automatically when the window reappears">
+                 <option value="">Always…</option>
+                 <option value="app">Always: this app</option>
+                 <option value="window">Always: this window</option>
+               </select>`}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRules() {
+  const rows = $('rule-rows');
+  $('rule-empty').style.display = state.rules.length ? 'none' : 'block';
+  rows.innerHTML = state.rules.map(r => `
+    <tr>
+      <td><input type="checkbox" data-act="toggle-rule" data-id="${esc(r.id)}" ${r.enabled ? 'checked' : ''}></td>
+      <td class="app">${esc(r.exe || 'any')}</td>
+      <td class="title" title="${esc(r.title)}">${esc(r.title || '(any title)')}</td>
+      <td>
+        <select data-act="mode" data-id="${esc(r.id)}">
+          <option value="dim" ${r.mode === 'dim' ? 'selected' : ''}>dim (click-through)</option>
+          <option value="hide" ${r.mode === 'hide' ? 'selected' : ''}>hide</option>
+        </select>
+      </td>
+      <td><button class="danger" data-act="remove-rule" data-id="${esc(r.id)}">Remove</button></td>
+    </tr>`).join('');
+}
+
+function renderHidden() {
+  $('headline').textContent =
+    `${state.windows.length} windows · ${state.protected.length} protected · ` +
+    `${state.hidden.length} hidden`;
+}
+
+function render() {
+  renderProtected(); renderWindows(); renderRules(); renderHidden(); renderMonitorNote();
+  $('chk-dashboard').checked = !!state.dashboard_protected;
+  // Don't yank the slider back while it is being dragged, or before the
+  // debounced save has been round-tripped.
+  if (Date.now() - dimTouchedAt > 900) {
+    dimSlider.value = state.dim_transparency;
+    $('dim-value').textContent = state.dim_transparency + '%';
+  }
+}
+
+async function refresh() {
+  try {
+    state = await pywebview.api.snapshot();
+    render();
+  } catch (e) { /* window may be closing */ }
+}
+
+document.addEventListener('click', async (ev) => {
+  const el = ev.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.dataset.act;
+  const call = async (fn, ...args) => {
+    const res = await fn(...args);
+    if (res && res.ok === false) toast(res.message || 'failed', true);
+    else if (res && res.message) toast(res.message);
+    await refresh();
+  };
+
+  const hwnd = el.dataset.hwnd ? parseInt(el.dataset.hwnd, 10) : null;
+  const id = el.dataset.id;
+
+  if (act === 'new') return;
+  if (act === 'always') return;  // a select; handled by the change listener
+  if (act === 'close') return call(pywebview.api.close_protected, id);
+  if (act === 'focus') return call(pywebview.api.focus_protected, id);
+  if (act === 'dim') {
+    const w = state.windows.find(x => x.hwnd === hwnd);
+    return call(w && w.state.dimmed ? pywebview.api.undim : pywebview.api.dim, hwnd);
+  }
+  if (act === 'pin') {
+    const w = state.windows.find(x => x.hwnd === hwnd);
+    return call(pywebview.api.set_pinned, hwnd, !(w && w.state.pinned));
+  }
+  if (act === 'hide') return call(pywebview.api.hide, hwnd);
+  if (act === 'exclude') return call(pywebview.api.exclude_own, hwnd);
+  if (act === 'move') return call(pywebview.api.move_to_other_monitor, hwnd);
+  if (act === 'remove-rule') return call(pywebview.api.remove_rule, id);
+});
+
+document.addEventListener('change', async (ev) => {
+  const toggle = ev.target.closest('[data-act="toggle-rule"]');
+  if (toggle) {
+    await pywebview.api.toggle_rule(toggle.dataset.id, toggle.checked);
+    return refresh();
+  }
+  const mode = ev.target.closest('[data-act="mode"]');
+  if (mode) {
+    const res = await pywebview.api.set_rule_mode(mode.dataset.id, mode.value);
+    if (res && res.ok === false) toast(res.message, true);
+    return refresh();
+  }
+  const always = ev.target.closest('[data-act="always"]');
+  if (always) {
+    const kind = always.value;
+    always.value = '';
+    if (!kind) return;
+    const hwnd = parseInt(always.dataset.hwnd, 10);
+    const res = kind === 'app'
+      ? await pywebview.api.always_app(hwnd)
+      : await pywebview.api.always_window(hwnd);
+    if (res && res.ok === false) toast(res.message, true);
+    else if (res && res.message) toast(res.message);
+    return refresh();
+  }
+});
+
+$('chk-dashboard').addEventListener('change', async (ev) => {
+  const res = await pywebview.api.toggle_dashboard_protection(ev.target.checked);
+  toast(res.message, res.ok === false);
+  await refresh();
+});
+
+$('btn-new').addEventListener('click', async () => {
+  const label = $('new-label').value.trim() || 'Protected';
+  const url = $('new-url').value.trim() || 'about:blank';
+  $('new-label').value = ''; $('new-url').value = '';
+  const res = await pywebview.api.new_protected(label, url);
+  if (res && res.ok === false) toast(res.message, true);
+  await refresh();
+});
+
+$('btn-showall').addEventListener('click', async () => {
+  const res = await pywebview.api.show_all();
+  toast(res.message);
+  await refresh();
+});
+
+$('btn-verify').addEventListener('click', () => pywebview.api.open_verify());
+
+$('new-url').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-new').click(); });
+
+const dimSlider = $('dim-slider');
+let dimTouchedAt = 0;
+let dimTimer = null;
+
+dimSlider.addEventListener('input', () => {
+  dimTouchedAt = Date.now();
+  $('dim-value').textContent = dimSlider.value + '%';
+  clearTimeout(dimTimer);
+  dimTimer = setTimeout(() => {
+    pywebview.api.set_dim_transparency(parseInt(dimSlider.value, 10));
+  }, 60);
+});
+
+refresh();
+setInterval(refresh, 1200);
+</script>
+</body>
+</html>
