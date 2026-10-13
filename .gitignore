@@ -24,5 +24,6 @@ desktop.ini
 docs/PRODUCTS.md
 docs/ARCHITECTURE.md
 session-handoff.md
-feature-list.json
+feature_list.json
+init.sh
 AGENTS.md
