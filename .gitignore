@@ -21,9 +21,10 @@ Thumbs.db
 desktop.ini
 *.log
 
-docs/PRODUCTS.md
+docs/PRODUCT.md
 docs/ARCHITECTURE.md
 session-handoff.md
+clean-state-checklist.md
 feature_list.json
 init.sh
 AGENTS.md
